@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -6,49 +6,29 @@ import {
   Typography,
   Container,
   Paper,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Dialog,
-  DialogContent,
-  CircularProgress,
-  FormControlLabel,
-  Checkbox,
   Grid,
+  IconButton,
   InputAdornment,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import PersonIcon from '@mui/icons-material/Person';
-import LogoutIcon from '@mui/icons-material/Logout';
-import axios from 'axios';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { ptBR } from 'date-fns/locale';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [recipientId, setRecipientId] = useState('');
-  const [eventDate, setEventDate] = useState('');
-  const [reminderDays, setReminderDays] = useState(1);
+  const [eventDate, setEventDate] = useState<Date | null>(null);
+  const [reminderDays, setReminderDays] = useState(0);
   const [wantReminder, setWantReminder] = useState(false);
-  const [showRecipientId, setShowRecipientId] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  useEffect(() => {
-    // Verificar se o usuário está logado
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/');
-      return;
-    }
-
-    // Recuperar informações do usuário
-    const userData = localStorage.getItem('user');
-    if (userData) {
-      const user = JSON.parse(userData);
-      setUserName(user.first_name);
-    }
-  }, [navigate]);
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -58,22 +38,28 @@ const Dashboard: React.FC = () => {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setRecipientId(formatted);
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setRecipientId(formattedPhone);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    if (!eventDate) {
+      setError('Por favor, selecione uma data para o evento');
+      return;
+    }
 
     try {
-      await axios.post(
+      const response = await axios.post(
         `${process.env.REACT_APP_API_URL}/messages`,
         {
           text: message,
-          recipient_id: recipientId,
-          event_date: eventDate,
-          reminder_days: reminderDays.toString(),
+          recipient_id: recipientId.replace(/\D/g, ''),
+          event_date: eventDate.toISOString(),
+          reminder_days: reminderDays,
           want_reminder: wantReminder,
         },
         {
@@ -83,120 +69,130 @@ const Dashboard: React.FC = () => {
         }
       );
 
+      setSuccess('Mensagem agendada com sucesso!');
       setMessage('');
       setRecipientId('');
-      setEventDate('');
+      setEventDate(null);
       setReminderDays(0);
       setWantReminder(false);
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Erro ao agendar mensagem');
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Box sx={{ flexGrow: 1 }} />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <PersonIcon />
-            <Typography variant="body1">Usuário Logado: {userName}</Typography>
-            <IconButton color="inherit" onClick={handleLogout}>
-              <LogoutIcon />
-            </IconButton>
+    <Container component="main" maxWidth="md">
+      <Box
+        sx={{
+          marginTop: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Box
+            sx={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              mb: 3,
+            }}
+          >
+            <Typography component="h1" variant="h5">
+              Bem-vindo, {user.first_name}!
+            </Typography>
+            <Button variant="outlined" onClick={handleLogout}>
+              Sair
+            </Button>
           </Box>
-        </Toolbar>
-      </AppBar>
 
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Paper elevation={3} sx={{ p: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Nova Mensagem
-          </Typography>
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              fullWidth
-              multiline
-              rows={4}
-              label="Mensagem"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              margin="normal"
-            />
-            <Grid container spacing={2} alignItems="center">
-              <Grid item xs={12} sm={6}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
                 <TextField
+                  required
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Mensagem"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  required
                   fullWidth
                   label="Telefone do Destinatário"
                   value={recipientId}
                   onChange={handlePhoneChange}
-                  margin="normal"
-                  placeholder="(55) 55555-5555"
+                  placeholder="(XX) XXXXX-XXXX"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Data do Evento"
-                  value={eventDate}
-                  onChange={(e) => setEventDate(e.target.value)}
-                  margin="normal"
-                  InputLabelProps={{ shrink: true }}
-                />
+                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                  <DatePicker
+                    label="Data do Evento"
+                    value={eventDate}
+                    onChange={(newValue) => setEventDate(newValue)}
+                    sx={{ width: '100%' }}
+                  />
+                </LocalizationProvider>
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="number"
-                  label="Dias anterior para o Lembrete"
+                  label="Dias para Lembrete"
                   value={reminderDays}
-                  onChange={(e) => setReminderDays(parseInt(e.target.value))}
-                  margin="normal"
+                  onChange={(e) => setReminderDays(Number(e.target.value))}
+                  InputProps={{
+                    inputProps: { min: 0 },
+                  }}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={wantReminder}
-                      onChange={(e) => setWantReminder(e.target.checked)}
-                    />
-                  }
-                  label="Quero também receber o lembrete"
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ display: 'flex', justifyContent: '' }}>
+              <Grid item xs={12}>
                 <Button
                   type="submit"
+                  fullWidth
                   variant="contained"
-                  color="primary"
-                  sx={{ mt: 2 }}
+                  sx={{ mt: 3, mb: 2 }}
                 >
                   Enviar Mensagem
                 </Button>
               </Grid>
             </Grid>
+            {error && (
+              <Typography color="error" sx={{ mt: 1 }}>
+                {error}
+              </Typography>
+            )}
+            {success && (
+              <Typography color="success.main" sx={{ mt: 1 }}>
+                {success}
+              </Typography>
+            )}
           </Box>
         </Paper>
-      </Container>
-
-      <Dialog open={loading}>
-        <DialogContent>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <CircularProgress />
-            <Typography sx={{ mt: 2 }}>Processando...</Typography>
-          </Box>
-        </DialogContent>
-      </Dialog>
-    </Box>
+      </Box>
+    </Container>
   );
 };
 

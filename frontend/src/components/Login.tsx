@@ -11,17 +11,17 @@ import {
   DialogContent,
   DialogActions,
   Grid,
-  InputAdornment,
   IconButton,
+  InputAdornment,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [openRegister, setOpenRegister] = useState(false);
   const [registerData, setRegisterData] = useState({
@@ -31,10 +31,10 @@ const Login: React.FC = () => {
     password: '',
     confirmPassword: '',
   });
+  const [registerError, setRegisterError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [showRegisterPassword, setShowRegisterPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [registerError, setRegisterError] = useState('');
-  const navigate = useNavigate();
 
   const formatPhoneNumber = (value: string) => {
     const numbers = value.replace(/\D/g, '');
@@ -44,20 +44,22 @@ const Login: React.FC = () => {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setPhone(formatted);
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setPhone(formattedPhone);
   };
 
   const handleRegisterPhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value);
-    setRegisterData({ ...registerData, phone: formatted });
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setRegisterData({ ...registerData, phone: formattedPhone });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
     try {
       const formData = new FormData();
-      formData.append('phone', phone);
+      formData.append('phone', phone.replace(/\D/g, ''));
       formData.append('password', password);
 
       const response = await axios.post(
@@ -69,13 +71,9 @@ const Login: React.FC = () => {
           },
         }
       );
-      
+
       localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify({
-        first_name: response.data.user.first_name,
-        phone: phone
-      }));
-      
+      localStorage.setItem('user', JSON.stringify(response.data.user));
       navigate('/dashboard');
     } catch (err) {
       setError('Credenciais inválidas');
@@ -97,12 +95,11 @@ const Login: React.FC = () => {
     }
 
     try {
-      const { confirmPassword, ...userData } = registerData;
       const formData = new FormData();
-      formData.append('first_name', userData.first_name);
-      formData.append('last_name', userData.last_name);
-      formData.append('phone', userData.phone);
-      formData.append('password', userData.password);
+      formData.append('first_name', registerData.first_name);
+      formData.append('last_name', registerData.last_name);
+      formData.append('phone', registerData.phone.replace(/\D/g, ''));
+      formData.append('password', registerData.password);
 
       await axios.post(
         `${process.env.REACT_APP_API_URL}/register`,
@@ -113,7 +110,7 @@ const Login: React.FC = () => {
           },
         }
       );
-      
+
       setOpenRegister(false);
       setRegisterData({
         first_name: '',
@@ -123,17 +120,7 @@ const Login: React.FC = () => {
         confirmPassword: '',
       });
     } catch (err: any) {
-      if (err.response?.data?.detail) {
-        if (Array.isArray(err.response.data.detail)) {
-          // Se for um array de erros de validação
-          setRegisterError(err.response.data.detail.map((error: any) => error.msg).join(', '));
-        } else {
-          // Se for uma mensagem de erro única
-          setRegisterError(err.response.data.detail);
-        }
-      } else {
-        setRegisterError('Erro ao criar usuário. Por favor, tente novamente.');
-      }
+      setRegisterError(err.response?.data?.detail || 'Erro ao criar usuário');
     }
   };
 
@@ -160,15 +147,15 @@ const Login: React.FC = () => {
           <Typography component="h1" variant="h5">
             Login
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
             <TextField
               margin="normal"
               required
               fullWidth
+              id="phone"
               label="Telefone"
               name="phone"
-              autoComplete="phone"
-              autoFocus
+              autoComplete="tel"
               value={phone}
               onChange={handlePhoneChange}
               placeholder="(55) 55555-5555"
@@ -188,7 +175,8 @@ const Login: React.FC = () => {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label="toggle password visibility"
+                                          aria-label="toggle password visibility"
+
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                     >
@@ -229,27 +217,41 @@ const Login: React.FC = () => {
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
+                  autoComplete="given-name"
+                  name="first_name"
                   required
                   fullWidth
+                  id="first_name"
                   label="Nome"
+                  autoFocus
                   value={registerData.first_name}
-                  onChange={(e) => setRegisterData({ ...registerData, first_name: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, first_name: e.target.value })
+                  }
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField
                   required
                   fullWidth
+                  id="last_name"
                   label="Sobrenome"
+                  name="last_name"
+                  autoComplete="family-name"
                   value={registerData.last_name}
-                  onChange={(e) => setRegisterData({ ...registerData, last_name: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, last_name: e.target.value })
+                  }
                 />
               </Grid>
               <Grid item xs={12}>
                 <TextField
                   required
                   fullWidth
+                  id="phone"
                   label="Telefone"
+                  name="phone"
+                  autoComplete="tel"
                   value={registerData.phone}
                   onChange={handleRegisterPhoneChange}
                   placeholder="(55) 55555-5555"
@@ -259,10 +261,15 @@ const Login: React.FC = () => {
                 <TextField
                   required
                   fullWidth
+                  name="password"
                   label="Senha"
                   type={showRegisterPassword ? 'text' : 'password'}
+                  id="password"
+                  autoComplete="new-password"
                   value={registerData.password}
-                  onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, password: e.target.value })
+                  }
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
@@ -282,15 +289,18 @@ const Login: React.FC = () => {
                 <TextField
                   required
                   fullWidth
+                  name="confirmPassword"
                   label="Confirmar Senha"
                   type={showConfirmPassword ? 'text' : 'password'}
+                  id="confirmPassword"
                   value={registerData.confirmPassword}
-                  onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, confirmPassword: e.target.value })
+                  }
                   InputProps={{
                     endAdornment: (
                       <InputAdornment position="end">
                         <IconButton
-                          aria-label="toggle password visibility"
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           edge="end"
                         >
@@ -303,18 +313,18 @@ const Login: React.FC = () => {
               </Grid>
             </Grid>
             {registerError && (
-              <Typography color="error" variant="body2" sx={{ mt: 2 }}>
+              <Typography color="error" sx={{ mt: 1 }}>
                 {registerError}
               </Typography>
             )}
-            <DialogActions>
-              <Button onClick={() => setOpenRegister(false)}>Cancelar</Button>
-              <Button type="submit" variant="contained">
-                Criar Usuário
-              </Button>
-            </DialogActions>
           </Box>
         </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenRegister(false)}>Cancelar</Button>
+          <Button onClick={handleRegister} variant="contained">
+            Criar Usuário
+          </Button>
+        </DialogActions>
       </Dialog>
     </Container>
   );

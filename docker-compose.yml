@@ -1,6 +1,41 @@
 version: '3.8'
 
 services:
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mensagens_futuras_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/mensagens_futuras?authSource=admin&retryWrites=true&w=majority
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - app-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mensagens_futuras_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
   mongodb:
     image: mongo:latest
     container_name: mensagens_futuras_mongodb
@@ -11,6 +46,13 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin123
+    networks:
+      - app-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -23,7 +65,18 @@ services:
       - RABBITMQ_DEFAULT_PASS=guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   mongodb_data:
-  rabbitmq_data: 
+  rabbitmq_data:
+
+networks:
+  app-network:
+    driver: bridge 
