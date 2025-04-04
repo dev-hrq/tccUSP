@@ -1,0 +1,261 @@
+# Dependências
+node_modules/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build
+/build
+/dist
+/coverage
+
+# Testes
+/coverage
+/tests/__pycache__/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Cache
+.cache/
+.npm/
+.eslintcache
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos específicos do projeto
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+
+# Arquivos de configuração local
+config.local.json
+config.local.js
+config.local.ts
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Arquivos de debug
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Arquivos de documentação
+/docs/_build/
+/docs/_static/
+/docs/_templates/
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Arquivos de cache
+.cache/
+.npm/
+.eslintcache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Arquivos de build
+/build
+/dist
+/out
+*.tsbuildinfo
+
+# Arquivos de teste
+/coverage
+/.nyc_output
+/test-results/
+/test-reports/
+/test-coverage/
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Arquivos de cache
+.cache/
+.npm/
+.eslintcache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos específicos do projeto
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.bak
+
+# Arquivos de configuração local
+config.local.json
+config.local.js
+config.local.ts
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Arquivos de debug
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Arquivos de documentação
+/docs/_build/
+/docs/_static/
+/docs/_templates/
+
+# Arquivos de backup
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# Arquivos de cache
+.cache/
+.npm/
+.eslintcache
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Arquivos de build
+/build
+/dist
+/out
+*.tsbuildinfo
+
+# Arquivos de teste
+/coverage
+/.nyc_output
+/test-results/
+/test-reports/
+/test-coverage/
+
+# Arquivos de ambiente
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local 
