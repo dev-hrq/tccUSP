@@ -10,15 +10,16 @@ services:
       - "8000:8000"
     environment:
       - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/mensagens_futuras?authSource=admin&retryWrites=true&w=majority
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=guest
-      - RABBITMQ_PASSWORD=guest
+      # Variáveis do RabbitMQ comentadas ou removidas
+      # - RABBITMQ_HOST=rabbitmq
+      # - RABBITMQ_PORT=5672
+      # - RABBITMQ_USER=guest
+      # - RABBITMQ_PASSWORD=guest
     depends_on:
       mongodb:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      #rabbitmq:
+      #  condition: service_healthy
     networks:
       - app-network
 
@@ -43,9 +44,11 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=admin123
+      - MONGO_INITDB_DATABASE=mensagens_futuras
     networks:
       - app-network
     healthcheck:
@@ -54,29 +57,30 @@ services:
       timeout: 10s
       retries: 5
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    container_name: mensagens_futuras_rabbitmq
-    ports:
-      - "5672:5672"   # Porta AMQP
-      - "15672:15672" # Porta da interface web
-    environment:
-      - RABBITMQ_DEFAULT_USER=guest
-      - RABBITMQ_DEFAULT_PASS=guest
-    volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-    networks:
-      - app-network
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 10s
-      timeout: 10s
-      retries: 5
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   container_name: mensagens_futuras_rabbitmq
+  #   ports:
+  #     - "5672:5672"   # Porta AMQP
+  #     - "15672:15672" # Porta da interface web
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=guest
+  #     - RABBITMQ_DEFAULT_PASS=guest
+  #   volumes:
+  #     - rabbitmq_data:/var/lib/rabbitmq
+  #   networks:
+  #     - app-network
+  #   healthcheck:
+  #     test: rabbitmq-diagnostics -q ping
+  #     interval: 10s
+  #     timeout: 10s
+  #     retries: 5
+
 
 volumes:
   mongodb_data:
-  rabbitmq_data:
+      #rabbitmq_data:
 
 networks:
   app-network:
-    driver: bridge 
+    driver: bridge

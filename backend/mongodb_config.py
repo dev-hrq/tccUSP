@@ -7,7 +7,22 @@ load_dotenv()
 
 # Configuração do MongoDB
 mongodb_uri = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
-client = MongoClient(mongodb_uri, serverSelectionTimeoutMS=5000)
+print(f"Connecting to MongoDB with URI: {mongodb_uri}")
+
+try:
+    client = MongoClient(
+        mongodb_uri,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=10000,
+        socketTimeoutMS=10000
+    )
+    # Test the connection
+    client.admin.command('ping')
+    print("Successfully connected to MongoDB")
+except Exception as e:
+    print(f"Failed to connect to MongoDB: {str(e)}")
+    raise
+
 db = client["mensagens_futuras"]
 messages_collection = db["messages"]
 users_collection = db["users"]
