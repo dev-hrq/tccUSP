@@ -143,7 +143,7 @@ const Dashboard: React.FC = () => {
                   label="Telefone do Destinatário"
                   value={recipientId}
                   onChange={handlePhoneChange}
-                  placeholder="(XX) XXXXX-XXXX"
+                  placeholder="(55) 55555-5555"
                 />
               </Grid>
               <Grid item xs={12} sm={6}>

@@ -14,7 +14,9 @@ try:
         mongodb_uri,
         serverSelectionTimeoutMS=5000,
         connectTimeoutMS=10000,
-        socketTimeoutMS=10000
+        socketTimeoutMS=10000,
+        retryWrites=True,
+        w="majority"
     )
     # Test the connection
     client.admin.command('ping')
@@ -23,9 +25,20 @@ except Exception as e:
     print(f"Failed to connect to MongoDB: {str(e)}")
     raise
 
-db = client["mensagens_futuras"]
-messages_collection = db["messages"]
-users_collection = db["users"]
+try:
+    db = client["mensagens_futuras"]
+    # Create collections if they don't exist
+    if "users" not in db.list_collection_names():
+        db.create_collection("users")
+    if "messages" not in db.list_collection_names():
+        db.create_collection("messages")
+    
+    messages_collection = db["messages"]
+    users_collection = db["users"]
+    print("Collections created/verified successfully")
+except Exception as e:
+    print(f"Error setting up database collections: {str(e)}")
+    raise
 
 # Configuração de criptografia
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -42,35 +55,41 @@ def create_user(user_data):
         
         # Insere o usuário no banco de dados
         result = users_collection.insert_one(user_data)
+        print(f"User created successfully with ID: {result.inserted_id}")
         return result
+    except ValueError as e:
+        print(f"Validation error creating user: {str(e)}")
+        raise
     except Exception as e:
-        print(f"Erro ao criar usuário: {str(e)}")
+        print(f"Error creating user: {str(e)}")
         raise
 
 def verify_user(phone, password):
     try:
         user = users_collection.find_one({"phone": phone})
         if not user:
+            print(f"No user found with phone: {phone}")
             return None
         
         if not pwd_context.verify(password, user["password"]):
+            print(f"Invalid password for user: {phone}")
             return None
         
         return user
     except Exception as e:
-        print(f"Erro ao verificar usuário: {str(e)}")
+        print(f"Error verifying user: {str(e)}")
         return None
 
 def save_message(message_data):
     try:
         return messages_collection.insert_one(message_data)
     except Exception as e:
-        print(f"Erro ao salvar mensagem: {str(e)}")
+        print(f"Error saving message: {str(e)}")
         raise
 
 def get_messages_by_recipient(recipient_id):
     try:
         return list(messages_collection.find({"recipient_id": recipient_id}))
     except Exception as e:
-        print(f"Erro ao buscar mensagens: {str(e)}")
+        print(f"Error getting messages: {str(e)}")
         return [] 

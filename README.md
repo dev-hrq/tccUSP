@@ -59,10 +59,10 @@ docker-compose up -d
 3. Configure o backend:
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # No Windows: venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload
+python -m venv venv;
+source venv/bin/activate ; # No Windows: venv\Scripts\activate
+pip install -r requirements.txt;
+uvicorn main:app --reload;
 ```
 
 4. Configure o frontend:
