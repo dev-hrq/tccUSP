@@ -8,6 +8,8 @@ import os
 from dotenv import load_dotenv
 from rabbitmq_config import publish_message
 from mongodb_config import create_user, verify_user
+from app.models.message import Message
+from app.routes import messages
 
 load_dotenv()
 
@@ -21,16 +23,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Modelos
-class Message(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    
-    text: str
-    recipient_id: str
-    event_date: datetime
-    reminder_days: int
-    want_reminder: bool
 
 # Rotas
 @app.post("/login")
@@ -78,17 +70,8 @@ async def register(
             detail=f"Erro ao criar usuário: {str(e)}"
         )
 
-@app.post("/messages")
-async def create_message(message: Message):
-    try:
-        # Publica a mensagem no RabbitMQ
-        publish_message(message.model_dump())
-        return {"message": "Mensagem recebida com sucesso"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erro ao processar mensagem: {str(e)}"
-        )
+# Incluir as rotas de mensagens
+app.include_router(messages.router, prefix="/api", tags=["messages"])
 
 @app.get("/")
 async def root():

@@ -10,16 +10,15 @@ services:
       - "8000:8000"
     environment:
       - MONGODB_URI=mongodb://admin:admin123@mongodb:27017/mensagens_futuras?authSource=admin&retryWrites=true&w=majority
-      # Variáveis do RabbitMQ comentadas ou removidas
-      # - RABBITMQ_HOST=rabbitmq
-      # - RABBITMQ_PORT=5672
-      # - RABBITMQ_USER=guest
-      # - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASSWORD=guest
     depends_on:
       mongodb:
         condition: service_healthy
-      #rabbitmq:
-      #  condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -33,7 +32,8 @@ services:
     environment:
       - REACT_APP_API_URL=http://localhost:8000
     depends_on:
-      - backend
+      backend:
+        condition: service_started
     networks:
       - app-network
 
@@ -57,29 +57,28 @@ services:
       timeout: 10s
       retries: 5
 
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   container_name: mensagens_futuras_rabbitmq
-  #   ports:
-  #     - "5672:5672"   # Porta AMQP
-  #     - "15672:15672" # Porta da interface web
-  #   environment:
-  #     - RABBITMQ_DEFAULT_USER=guest
-  #     - RABBITMQ_DEFAULT_PASS=guest
-  #   volumes:
-  #     - rabbitmq_data:/var/lib/rabbitmq
-  #   networks:
-  #     - app-network
-  #   healthcheck:
-  #     test: rabbitmq-diagnostics -q ping
-  #     interval: 10s
-  #     timeout: 10s
-  #     retries: 5
-
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mensagens_futuras_rabbitmq
+    ports:
+      - "5672:5672"   # Porta AMQP
+      - "15672:15672" # Porta da interface web
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - app-network
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   mongodb_data:
-      #rabbitmq_data:
+  rabbitmq_data:
 
 networks:
   app-network:

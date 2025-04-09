@@ -13,6 +13,8 @@ import {
   Grid,
   IconButton,
   InputAdornment,
+  Alert,
+  Snackbar,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import axios from 'axios';
@@ -24,6 +26,7 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [openRegister, setOpenRegister] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [registerData, setRegisterData] = useState({
     first_name: '',
     last_name: '',
@@ -112,6 +115,7 @@ const Login: React.FC = () => {
       );
 
       setOpenRegister(false);
+      setShowSuccessMessage(true);
       setRegisterData({
         first_name: '',
         last_name: '',
@@ -326,6 +330,17 @@ const Login: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={showSuccessMessage}
+        autoHideDuration={6000}
+        onClose={() => setShowSuccessMessage(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setShowSuccessMessage(false)} severity="success" sx={{ width: '100%' }}>
+          Usuário cadastrado com sucesso!
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
