@@ -19,6 +19,8 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ptBR from 'date-fns/locale/pt-BR';
+import { createMessage, getMessages } from '../services/api';
+import { format } from 'date-fns';
 
 interface Message {
   id: string;
@@ -43,20 +45,24 @@ const Dashboard: React.FC = () => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   useEffect(() => {
-    fetchMessages();
-  }, []);
+    // Verificar se há token
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    
+    // Carregar mensagens
+    loadMessages();
+  }, [navigate]);
 
-  const fetchMessages = async () => {
+  const loadMessages = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/messages`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setMessages(response.data);
+      const data = await getMessages();
+      setMessages(data);
     } catch (err) {
-      console.error('Erro ao buscar mensagens:', err);
+      console.error('Erro ao carregar mensagens:', err);
+      setError('Erro ao carregar mensagens');
     }
   };
 
@@ -82,45 +88,34 @@ const Dashboard: React.FC = () => {
     }
 
     try {
+      // Verificar se há token antes de enviar
       const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/messages`,
-        {
-          recipient_phone: recipientPhone.replace(/\D/g, ''),
-          message,
-          event_date: eventDate.toISOString(),
-          reminder_days: parseInt(reminderDays),
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      if (!token) {
+        navigate('/login');
+        return;
+      }
 
-      console.log('Resposta do servidor:', response.data);
+      await createMessage({
+        recipient_phone: recipientPhone.replace(/\D/g, ''),
+        message,
+        event_date: eventDate.toISOString(),
+        reminder_days: parseInt(reminderDays),
+      });
 
       setMessage('');
       setRecipientPhone('');
       setEventDate(null);
       setReminderDays('');
       setShowSuccess(true);
-      fetchMessages();
+      loadMessages();
     } catch (err: any) {
-      console.error('Erro ao enviar mensagem:', err.response?.data);
-      
-      // Tratamento específico para erros de validação do FastAPI
-      if (err.response?.data?.detail) {
-        if (Array.isArray(err.response.data.detail)) {
-          // Se for um array de erros, pega a primeira mensagem
-          setError(err.response.data.detail[0].msg);
-        } else {
-          // Se for uma string de erro
-          setError(err.response.data.detail);
-        }
+      console.error('Erro ao enviar mensagem:', err);
+      if (err.response?.status === 401) {
+        // Token inválido ou expirado
+        localStorage.removeItem('token');
+        navigate('/login');
       } else {
-        setError('Erro ao enviar mensagem. Por favor, tente novamente.');
+        setError(err.response?.data?.detail || 'Erro ao enviar mensagem');
       }
     }
   };
@@ -128,7 +123,7 @@ const Dashboard: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/');
+    navigate('/login');
   };
 
   return (

@@ -1,16 +1,13 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field, field_validator
+import uuid
 
-class Message(BaseModel):
-    id: Optional[str] = Field(None, alias="_id")
-    sender_id: Optional[str] = None
+class MessageInput(BaseModel):
     recipient_phone: str = Field(..., description="Número de telefone do destinatário")
     message: str = Field(..., description="Conteúdo da mensagem")
     event_date: str = Field(..., description="Data do evento no formato ISO")
     reminder_days: int = Field(..., description="Número de dias para lembrete")
-    status: str = Field(default="Processando", description="Status da mensagem")
-    created_at: Optional[str] = None
 
     @field_validator('recipient_phone')
     @classmethod
@@ -35,9 +32,17 @@ class Message(BaseModel):
             raise ValueError('A mensagem não pode estar vazia')
         return v
 
+class Message(MessageInput):
+    id: str = Field(..., alias="_id", description="ID único da mensagem")
+    sender_id: str = Field(..., description="ID do usuário que enviou a mensagem")
+    status: str = Field(default="Processando", description="Status da mensagem")
+    created_at: Optional[str] = None
+
     model_config = {
         "json_schema_extra": {
             "example": {
+                "_id": str(uuid.uuid4()),
+                "sender_id": str(uuid.uuid4()),
                 "recipient_phone": "11999999999",
                 "message": "Olá, esta é uma mensagem de teste",
                 "event_date": "2024-04-10T00:00:00",

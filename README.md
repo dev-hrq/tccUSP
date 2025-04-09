@@ -2,6 +2,18 @@
 
 Sistema para agendamento e envio de mensagens futuras, com integração entre frontend React, backend FastAPI, MongoDB e RabbitMQ.
 
+## Débitos Técnicos
+
+### Autenticação
+- A autenticação atual está usando um token fake para simular o usuário logado
+- Em produção, é necessário implementar:
+  - Autenticação real com JWT
+  - Validação de tokens
+  - Refresh tokens
+  - Proteção de rotas
+  - Gerenciamento de sessões
+  - Logout adequado
+
 ## Funcionalidades
 
 - Cadastro e autenticação de usuários
