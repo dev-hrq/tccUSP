@@ -27,7 +27,7 @@ async def create_message(message: Message, current_user: dict = Depends(get_curr
         
         logger.info(f"Mensagem processada: {message_dict}")
         
-        result = await db.messages.insert_one(message_dict)
+        result = db.messages.insert_one(message_dict)
         message_dict["_id"] = str(result.inserted_id)
         
         logger.info(f"Mensagem salva com sucesso: {message_dict}")
@@ -41,7 +41,7 @@ async def get_messages(current_user: dict = Depends(get_current_user)):
     try:
         logger.info(f"Buscando mensagens para usuário: {current_user['id']}")
         db = get_database()
-        messages = await db.messages.find({"sender_id": current_user["id"]}).to_list(length=100)
+        messages = list(db.messages.find({"sender_id": current_user["id"]}).limit(100))
         
         # Converter os campos datetime para string ISO
         for msg in messages:
