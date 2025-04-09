@@ -38,6 +38,7 @@ async def login(phone: str = Form(...), password: str = Form(...)):
         "access_token": "fake_token",
         "token_type": "bearer",
         "user": {
+            "id": str(user["_id"]),
             "first_name": user["first_name"],
             "phone": user["phone"]
         }

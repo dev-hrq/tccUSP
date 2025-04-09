@@ -54,20 +54,26 @@ const Dashboard: React.FC = () => {
     // Verificar se há token
     const token = localStorage.getItem('token');
     if (!token) {
-      navigate('/login');
+      navigate('/');
       return;
     }
-    
-    // Carregar mensagens
-    loadMessages();
+
+    // Carregar usuário atual
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (user && user.id) {
+      setCurrentUser({
+        id: user.id,
+        first_name: user.first_name
+      });
+      // Carregar mensagens apenas depois que o usuário for carregado
+      loadMessages();
+    }
   }, [navigate]);
 
   const loadMessages = async () => {
     try {
       const data = await getMessages();
-      // Filtrar mensagens pelo sender_id do usuário atual
-      const userMessages = data.filter((msg: Message) => msg.sender_id === currentUser?.id);
-      setMessages(userMessages);
+      setMessages(data);  // Removido o filtro pois o backend já filtra as mensagens
     } catch (err) {
       console.error('Erro ao carregar mensagens:', err);
       setError('Erro ao carregar mensagens');
