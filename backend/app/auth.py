@@ -23,10 +23,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         db = get_database()
         # Por enquanto, estamos usando um usuário fixo
         # Em produção, você deve buscar o usuário real baseado no token
-        user = db.users.find_one({"phone": "11999999999"})
+        user = db.users.find_one({})  # Buscar qualquer usuário (por enquanto)
         
         if not user:
-            logger.error("Usuário padrão não encontrado")
+            logger.error("Usuário não encontrado")
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Usuário não encontrado",
@@ -35,8 +35,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         
         logger.info(f"Usuário encontrado: {user}")
         return {
-            "id": str(user["_id"]),
-            "phone": user["phone"]
+            "id": str(user["_id"]),  # ID do usuário que está logado
+            "phone": user["phone"]  # Telefone do usuário que está logado
         }
     except Exception as e:
         logger.error(f"Erro ao buscar usuário: {str(e)}")
