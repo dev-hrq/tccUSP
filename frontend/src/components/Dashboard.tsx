@@ -50,6 +50,18 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState('');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+  const formatPhoneNumber = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    if (numbers.length <= 2) return numbers;
+    if (numbers.length <= 7) return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`;
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 7)}-${numbers.slice(7, 11)}`;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedPhone = formatPhoneNumber(e.target.value);
+    setNewMessage({ ...newMessage, recipient_phone: formattedPhone });
+  };
+
   useEffect(() => {
     // Verificar se há token
     const token = localStorage.getItem('token');
@@ -166,7 +178,7 @@ const Dashboard: React.FC = () => {
                   fullWidth
                   label="Telefone do Destinatário"
                   value={newMessage.recipient_phone}
-                  onChange={(e) => setNewMessage({ ...newMessage, recipient_phone: e.target.value })}
+                  onChange={handlePhoneChange}
                   placeholder="(55) 55555-5555"
                 />
               </Grid>

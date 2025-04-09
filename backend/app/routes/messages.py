@@ -24,6 +24,7 @@ async def create_message(message: MessageInput, current_user: dict = Depends(get
         message_dict["_id"] = message_id
         
         # Usar o ID do usuário atual como sender_id
+        # message_dict["sender_id"] = current_user["id"]
         message_dict["sender_id"] = current_user["id"]
         message_dict["created_at"] = datetime.utcnow().isoformat()
         message_dict["status"] = "Processando"
