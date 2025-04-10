@@ -20,6 +20,8 @@ import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../services/api';
 import axios from 'axios';
+import Header from './Header';
+import Footer from './Footer';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -117,15 +119,15 @@ const Login: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+      }}
+    >
+      <Header />
+      <Container component="main" maxWidth="xs" sx={{ mt: 8, mb: 2, flex: 1 }}>
         <Paper
           elevation={3}
           sx={{
@@ -133,7 +135,6 @@ const Login: React.FC = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
           }}
         >
           <Typography component="h1" variant="h5">
@@ -167,8 +168,7 @@ const Login: React.FC = () => {
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                                          aria-label="toggle password visibility"
-
+                      aria-label="toggle password visibility"
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                     >
@@ -200,7 +200,8 @@ const Login: React.FC = () => {
             </Button>
           </Box>
         </Paper>
-      </Box>
+      </Container>
+      <Footer />
 
       <Dialog open={openRegister} onClose={() => setOpenRegister(false)}>
         <DialogTitle>Criar Novo Usuário</DialogTitle>
@@ -329,7 +330,7 @@ const Login: React.FC = () => {
           Usuário cadastrado com sucesso!
         </Alert>
       </Snackbar>
-    </Container>
+    </Box>
   );
 };
 

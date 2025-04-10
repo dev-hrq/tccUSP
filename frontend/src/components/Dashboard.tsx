@@ -21,6 +21,8 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ptBR from 'date-fns/locale/pt-BR';
 import { createMessage, getMessages, logout } from '../services/api';
 import { format } from 'date-fns';
+import Header from './Header';
+import Footer from './Footer';
 
 interface Message {
   id: string;
@@ -63,7 +65,6 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Verificar se há usuário logado
     const user = localStorage.getItem('user');
     if (!user) {
       navigate('/');
@@ -76,7 +77,6 @@ const Dashboard: React.FC = () => {
         id: parsedUser.id,
         first_name: parsedUser.first_name
       });
-      // Carregar mensagens apenas depois que o usuário for carregado
       loadMessages();
     } catch (err) {
       console.error('Erro ao carregar usuário:', err);
@@ -121,137 +121,144 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Container component="main" maxWidth="md">
-      <Box
-        sx={{
-          marginTop: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+      }}
+    >
+      <Header />
+      <Container component="main" maxWidth="md" sx={{ mt: 4, mb: 2, flex: 1 }}>
+        <Box
           sx={{
-            padding: 4,
+            marginTop: 4,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            width: '100%',
           }}
         >
-          <Box
+          <Paper
+            elevation={3}
             sx={{
-              width: '100%',
+              padding: 4,
               display: 'flex',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
               alignItems: 'center',
-              mb: 3,
+              width: '100%',
             }}
           >
-            <Typography component="h1" variant="h5">
-              Bem-vindo, {currentUser?.first_name || 'Usuário'}!
-            </Typography>
-            <Button variant="outlined" onClick={handleLogout}>
-              Sair
-            </Button>
-          </Box>
+            <Box
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 3,
+              }}
+            >
+              <Typography component="h1" variant="h5">
+                Bem-vindo, {currentUser?.first_name || 'Usuário'}!
+              </Typography>
+            </Box>
 
-          {error && (
-            <Typography color="error" sx={{ mt: 1 }}>
-              {error}
-            </Typography>
-          )}
+            {error && (
+              <Typography color="error" sx={{ mt: 1 }}>
+                {error}
+              </Typography>
+            )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Mensagem"
-                  value={newMessage.message}
-                  onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  required
-                  fullWidth
-                  label="Telefone do Destinatário"
-                  value={newMessage.recipient_phone}
-                  onChange={handlePhoneChange}
-                  placeholder="(55) 55555-5555"
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
-                  <DatePicker
-                    label="Data do Evento"
-                    value={newMessage.event_date ? new Date(newMessage.event_date) : null}
-                    onChange={(newValue) => setNewMessage({ ...newMessage, event_date: newValue ? newValue.toISOString() : '' })}
-                    slotProps={{ textField: { fullWidth: true, required: true } }}
+            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    multiline
+                    rows={4}
+                    label="Mensagem"
+                    value={newMessage.message}
+                    onChange={(e) => setNewMessage({ ...newMessage, message: e.target.value })}
                   />
-                </LocalizationProvider>
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    label="Telefone do Destinatário"
+                    value={newMessage.recipient_phone}
+                    onChange={handlePhoneChange}
+                    placeholder="(55) 55555-5555"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={ptBR}>
+                    <DatePicker
+                      label="Data do Evento"
+                      value={newMessage.event_date ? new Date(newMessage.event_date) : null}
+                      onChange={(newValue) => setNewMessage({ ...newMessage, event_date: newValue ? newValue.toISOString() : '' })}
+                      slotProps={{ textField: { fullWidth: true, required: true } }}
+                    />
+                  </LocalizationProvider>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    required
+                    fullWidth
+                    type="number"
+                    label="Dias para Lembrete"
+                    value={newMessage.reminder_days}
+                    onChange={(e) => setNewMessage({ ...newMessage, reminder_days: parseInt(e.target.value) })}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    type="submit"
+                    fullWidth
+                    variant="contained"
+                    sx={{ mt: 3, mb: 2 }}
+                  >
+                    Enviar Mensagem
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  type="number"
-                  label="Dias para Lembrete"
-                  value={newMessage.reminder_days}
-                  onChange={(e) => setNewMessage({ ...newMessage, reminder_days: parseInt(e.target.value) })}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 3, mb: 2 }}
-                >
-                  Enviar Mensagem
-                </Button>
-              </Grid>
+            </Box>
+          </Paper>
+
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" gutterBottom>
+              Mensagens Enviadas
+            </Typography>
+            <Grid container spacing={2}>
+              {messages.map((msg) => (
+                <Grid item xs={12} key={msg.id}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" component="div">
+                        Para: {msg.recipient_phone}
+                      </Typography>
+                      <Typography color="text.secondary" gutterBottom>
+                        Data do Evento: {format(new Date(msg.event_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      </Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>
+                        {msg.message}
+                      </Typography>
+                      <Typography color="text.secondary" sx={{ mt: 1 }}>
+                        Status: {msg.status}
+                      </Typography>
+                      <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                        Enviado em: {format(new Date(msg.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ))}
             </Grid>
           </Box>
-        </Paper>
-
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>
-            Mensagens Enviadas
-          </Typography>
-          <Grid container spacing={2}>
-            {messages.map((msg) => (
-              <Grid item xs={12} key={msg.id}>
-                <Card>
-                  <CardContent>
-                    <Typography variant="h6" component="div">
-                      Para: {msg.recipient_phone}
-                    </Typography>
-                    <Typography color="text.secondary" gutterBottom>
-                      Data do Evento: {format(new Date(msg.event_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </Typography>
-                    <Typography variant="body2" sx={{ mt: 1 }}>
-                      {msg.message}
-                    </Typography>
-                    <Typography color="text.secondary" sx={{ mt: 1 }}>
-                      Status: {msg.status}
-                    </Typography>
-                    <Typography variant="caption" display="block" sx={{ mt: 1 }}>
-                      Enviado em: {format(new Date(msg.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
         </Box>
-      </Box>
-    </Container>
+      </Container>
+      <Footer />
+    </Box>
   );
 };
 
