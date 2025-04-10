@@ -1,10 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer fake_token' // Token fake para autenticação
+    'Content-Type': 'application/json'
   },
 });
 
@@ -12,7 +11,6 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
-    // Adicionar o prefixo 'Bearer ' apenas quando for enviar a requisição
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -27,29 +25,33 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token expirado ou inválido
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }
 );
 
 export const login = async (phone: string, password: string) => {
-  // Por enquanto, apenas retornamos um token fake
-  return { access_token: 'fake_token' };
-};
-
-export const getMessages = async () => {
-  const response = await api.get('/messages');
+  const formData = new FormData();
+  formData.append('username', phone);
+  formData.append('password', password);
+  
+  const response = await api.post('/api/token', formData, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+  
   return response.data;
 };
 
-export const createMessage = async (message: {
-  recipient_phone: string;
-  message: string;
-  event_date: string;
-  reminder_days: number;
-}) => {
-  const response = await api.post('/messages', message);
+export const getMessages = async () => {
+  const response = await api.get('/api/messages');
+  return response.data;
+};
+
+export const createMessage = async (message: any) => {
+  const response = await api.post('/api/messages', message);
   return response.data;
 };
 

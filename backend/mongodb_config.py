@@ -1,7 +1,7 @@
 from pymongo import MongoClient
-from passlib.context import CryptContext
 import os
 from dotenv import load_dotenv
+from app.core.security import pwd_context
 
 load_dotenv()
 
@@ -53,9 +53,6 @@ try:
 except Exception as e:
     print(f"Error setting up database collections: {str(e)}")
     raise
-
-# Configuração de criptografia
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def create_user(user_data):
     try:

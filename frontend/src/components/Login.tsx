@@ -17,8 +17,9 @@ import {
   Snackbar,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../services/api';
+import axios from 'axios';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -61,25 +62,14 @@ const Login: React.FC = () => {
     setError('');
 
     try {
-      const formData = new FormData();
-      formData.append('phone', phone.replace(/\D/g, ''));
-      formData.append('password', password);
-
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/login`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
-      );
-
-      localStorage.setItem('token', response.data.access_token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Credenciais inválidas');
+      const response = await login(phone.replace(/\D/g, ''), password);
+      if (response.access_token) {
+        localStorage.setItem('token', response.access_token);
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      console.error('Erro no login:', err);
+      setError(err.response?.data?.detail || 'Telefone ou senha incorretos');
     }
   };
 
