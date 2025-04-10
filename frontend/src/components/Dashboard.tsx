@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
           </Paper>
 
           <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ textAlign: 'center' }}>
               Mensagens Enviadas
             </Typography>
             <Grid container spacing={2}>
@@ -235,13 +235,13 @@ const Dashboard: React.FC = () => {
                   <Card>
                     <CardContent>
                       <Typography variant="h6" component="div">
-                        Para: {msg.recipient_phone}
+                        Para: {formatPhoneNumber(msg.recipient_phone)}
                       </Typography>
                       <Typography color="text.secondary" gutterBottom>
                         Data do Evento: {format(new Date(msg.event_date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                       </Typography>
                       <Typography variant="body2" sx={{ mt: 1 }}>
-                        {msg.message}
+                        Mensagem:  {msg.message}
                       </Typography>
                       <Typography color="text.secondary" sx={{ mt: 1 }}>
                         Status: {msg.status}

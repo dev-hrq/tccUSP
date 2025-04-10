@@ -21,7 +21,7 @@ const Header: React.FC = () => {
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          Mensagens Futuras
+          NotifyX
         </Typography>
         <Box>
           {isLoggedIn ? (
