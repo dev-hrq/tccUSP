@@ -1,11 +1,11 @@
-# Sistema de Mensagens Futuras
+# Sistema de Mensagens Futuras(NotifyX)
 
 Sistema para agendamento e envio de mensagens futuras, com integração entre frontend React, backend FastAPI, MongoDB e RabbitMQ.
 
 ## Débitos Técnicos
 
 ### Autenticação
-- A autenticação atual está usando um token fake para simular o usuário logado
+- A autenticação atual está usando um sistema de sessão baseado em cookies
 - Em produção, é necessário implementar:
   - Autenticação real com JWT
   - Validação de tokens
@@ -115,6 +115,10 @@ RABBITMQ_PASSWORD=guest
 - [ ] Adicionar sistema de notificações por email
 - [ ] Melhorar interface de usuário
 - [ ] Adicionar suporte a múltiplos idiomas
+- [ ] Subir a aplicação para a Azure
+  - Configurar Azure App Service para o frontend e backend
+  - Configurar Azure Cosmos DB para MongoDB
+  - Configurar Azure Service Bus para RabbitMQ
 
 ## Contribuição
 
