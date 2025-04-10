@@ -103,4 +103,11 @@ def get_messages_by_recipient(recipient_id):
         return list(messages_collection.find({"recipient_id": recipient_id}))
     except Exception as e:
         print(f"Error getting messages: {str(e)}")
+        return []
+
+def get_messages_by_sender(sender_id):
+    try:
+        return list(messages_collection.find({"sender_id": sender_id}))
+    except Exception as e:
+        print(f"Error getting messages by sender: {str(e)}")
         return [] 

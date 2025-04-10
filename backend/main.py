@@ -1,8 +1,7 @@
 import logging
-from fastapi import FastAPI, Depends, HTTPException, status, Form
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi import FastAPI, Depends, HTTPException, status, Form, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, ConfigDict
 import os
@@ -11,7 +10,7 @@ from rabbitmq_config import publish_message
 from mongodb_config import create_user, verify_user
 from app.models.message import Message
 from app.routes import auth, messages
-from app.core.security import create_access_token
+from app.core.auth import create_session, delete_session
 
 load_dotenv()
 
@@ -20,7 +19,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler()  # Isso fará os logs aparecerem no terminal
+        logging.StreamHandler()
     ]
 )
 
@@ -35,33 +34,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rotas
+# Armazenamento de sessões em memória (em produção, use Redis ou banco de dados)
+sessions = {}
+
+def get_current_user(request: Request):
+    session_id = request.cookies.get("session_id")
+    if not session_id or session_id not in sessions:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Usuário não autenticado"
+        )
+    return sessions[session_id]
+
 @app.post("/login")
-async def login(phone: str = Form(...), password: str = Form(...)):
+async def login(response: Response, phone: str = Form(...), password: str = Form(...)):
     user = verify_user(phone, password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Credenciais inválidas",
-            headers={"WWW-Authenticate": "Bearer"},
+            detail="Credenciais inválidas"
         )
     
-    # Gerar um token de acesso válido
-    access_token_expires = timedelta(minutes=30)
-    access_token = create_access_token(
-        data={"sub": str(user["_id"])},
-        expires_delta=access_token_expires
+    # Criar uma nova sessão
+    session_id = create_session(user)
+    
+    # Definir o cookie
+    response.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=False,  # Em produção, defina como True
+        samesite="lax"
     )
     
     return {
-        "access_token": access_token,
-        "token_type": "bearer",
+        "message": "Login realizado com sucesso",
         "user": {
             "id": str(user["_id"]),
             "first_name": user["first_name"],
             "phone": user["phone"]
         }
     }
+
+@app.post("/logout")
+async def logout(request: Request, response: Response):
+    session_id = request.cookies.get("session_id")
+    if session_id:
+        delete_session(session_id)
+    response.delete_cookie("session_id")
+    return {"message": "Logout realizado com sucesso"}
 
 @app.post("/register")
 async def register(

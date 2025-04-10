@@ -1,18 +1,20 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 from datetime import datetime
 from ..models.message import Message, MessageInput
 from ..database import get_database
-from ..auth import get_current_user
 import logging
 import uuid
+from mongodb_config import get_messages_by_sender
+from ..core.auth import get_current_user
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
 @router.post("/messages", response_model=Message)
-async def create_message(message: MessageInput, current_user: dict = Depends(get_current_user)):
+async def create_message(message: MessageInput, request: Request):
     try:
+        current_user = get_current_user(request)
         logger.info(f"Recebendo mensagem: {message.model_dump()}")
         logger.info(f"Usuário atual: {current_user}")
         
@@ -45,11 +47,11 @@ async def create_message(message: MessageInput, current_user: dict = Depends(get
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/messages", response_model=List[Message])
-async def get_messages(current_user: dict = Depends(get_current_user)):
+async def get_messages(request: Request):
     try:
+        current_user = get_current_user(request)
         logger.info(f"Buscando mensagens para usuário: {current_user['id']}")
-        db = get_database()
-        messages = list(db.messages.find({"sender_id": current_user["id"]}).limit(100))
+        messages = get_messages_by_sender(current_user["id"])
         
         # Converter os campos datetime para string ISO e garantir que o id esteja presente
         for msg in messages:
