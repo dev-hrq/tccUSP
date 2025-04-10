@@ -7,8 +7,8 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 
 const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/" />;
+  const user = localStorage.getItem('user');
+  return user ? <>{children}</> : <Navigate to="/" />;
 };
 
 const App: React.FC = () => {

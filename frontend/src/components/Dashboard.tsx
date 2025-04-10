@@ -19,7 +19,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ptBR from 'date-fns/locale/pt-BR';
-import { createMessage, getMessages } from '../services/api';
+import { createMessage, getMessages, logout } from '../services/api';
 import { format } from 'date-fns';
 
 interface Message {
@@ -63,29 +63,31 @@ const Dashboard: React.FC = () => {
   };
 
   useEffect(() => {
-    // Verificar se há token
-    const token = localStorage.getItem('token');
-    if (!token) {
+    // Verificar se há usuário logado
+    const user = localStorage.getItem('user');
+    if (!user) {
       navigate('/');
       return;
     }
 
-    // Carregar usuário atual
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    if (user && user.id) {
+    try {
+      const parsedUser = JSON.parse(user);
       setCurrentUser({
-        id: user.id,
-        first_name: user.first_name
+        id: parsedUser.id,
+        first_name: parsedUser.first_name
       });
       // Carregar mensagens apenas depois que o usuário for carregado
       loadMessages();
+    } catch (err) {
+      console.error('Erro ao carregar usuário:', err);
+      navigate('/');
     }
   }, [navigate]);
 
   const loadMessages = async () => {
     try {
       const data = await getMessages();
-      setMessages(data);  // Removido o filtro pois o backend já filtra as mensagens
+      setMessages(data);
     } catch (err) {
       console.error('Erro ao carregar mensagens:', err);
       setError('Erro ao carregar mensagens');
@@ -94,8 +96,6 @@ const Dashboard: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-
     try {
       await createMessage(newMessage);
       setNewMessage({
@@ -105,15 +105,19 @@ const Dashboard: React.FC = () => {
         reminder_days: 0
       });
       loadMessages();
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erro ao enviar mensagem:', err);
-      setError(err.response?.data?.detail || 'Erro ao enviar mensagem');
+      setError('Erro ao enviar mensagem');
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (err) {
+      console.error('Erro ao fazer logout:', err);
+    }
   };
 
   return (

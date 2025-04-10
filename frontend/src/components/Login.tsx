@@ -62,14 +62,21 @@ const Login: React.FC = () => {
     setError('');
 
     try {
+      console.log('Tentando fazer login com:', { phone: phone.replace(/\D/g, ''), password });
       const response = await login(phone.replace(/\D/g, ''), password);
-      if (response.access_token) {
-        localStorage.setItem('token', response.access_token);
-        navigate('/dashboard');
+      console.log('Resposta do login:', response);
+
+      if (response && response.user) {
+        console.log('Usuário autenticado:', response.user);
+        localStorage.setItem('user', JSON.stringify(response.user));
+        navigate('/dashboard', { replace: true });
+      } else {
+        console.error('Resposta inválida do servidor:', response);
+        setError('Erro ao fazer login. Tente novamente.');
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Erro no login:', err);
-      setError(err.response?.data?.detail || 'Telefone ou senha incorretos');
+      setError('Telefone ou senha inválidos');
     }
   };
 
@@ -82,11 +89,6 @@ const Login: React.FC = () => {
       return;
     }
 
-    if (registerData.password.length < 8) {
-      setRegisterError('A senha deve ter pelo menos 8 caracteres');
-      return;
-    }
-
     try {
       const formData = new FormData();
       formData.append('first_name', registerData.first_name);
@@ -94,18 +96,14 @@ const Login: React.FC = () => {
       formData.append('phone', registerData.phone.replace(/\D/g, ''));
       formData.append('password', registerData.password);
 
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/register`,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
+      await axios.post('http://localhost:8000/register', formData, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
         }
-      );
+      });
 
-      setOpenRegister(false);
       setShowSuccessMessage(true);
+      setOpenRegister(false);
       setRegisterData({
         first_name: '',
         last_name: '',
@@ -114,7 +112,7 @@ const Login: React.FC = () => {
         confirmPassword: '',
       });
     } catch (err: any) {
-      setRegisterError(err.response?.data?.detail || 'Erro ao criar usuário');
+      setRegisterError(err.response?.data?.detail || 'Erro ao criar conta');
     }
   };
 
